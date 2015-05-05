@@ -1,36 +1,36 @@
-package fr.tse.fi2.hpp.labs.main;
+package fr.tse.fi2.hpp.labs.queries.impl.Lab4;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
+import org.openjdk.jmh.annotations.Fork;
+import org.openjdk.jmh.annotations.Measurement;
+import org.openjdk.jmh.annotations.Scope;
+import org.openjdk.jmh.annotations.Setup;
+import org.openjdk.jmh.annotations.State;
+import org.openjdk.jmh.annotations.Warmup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import fr.tse.fi2.hpp.labs.beans.measure.QueryProcessorMeasure;
 import fr.tse.fi2.hpp.labs.dispatcher.StreamingDispatcher;
 import fr.tse.fi2.hpp.labs.queries.AbstractQueryProcessor;
-import fr.tse.fi2.hpp.labs.queries.impl.Lab4.MembershipQuery;
 
-/**
- * Main class of the program. Register your new queries here
- * 
- * Design choice: no thread pool to show the students explicit
- * {@link CountDownLatch} based synchronization.
- * 
- * @author Julien
- * 
- */
-public class MainStreaming {
+@State(Scope.Thread)
+public class Benchmarkk {
 
-	final static Logger logger = LoggerFactory.getLogger(MainStreaming.class);
+	final static Logger logger = LoggerFactory.getLogger(Benchmarkk.class);
+	private MembershipQuery q;
 
 	/**
 	 * @param args
 	 * @throws IOException
 	 */
-	public static void main(String[] args) throws IOException {
+
+	@Setup
+	public void prepare() {
 		// Init query time measure
 		QueryProcessorMeasure measure = new QueryProcessorMeasure();
 		// Init dispatcher
@@ -40,7 +40,7 @@ public class MainStreaming {
 		// Query processors
 		List<AbstractQueryProcessor> processors = new ArrayList<>();
 		// Add you query processor here
-		MembershipQuery q = new MembershipQuery(measure);
+		q = new MembershipQuery(measure);
 		processors.add(q);
 		// Register query processors
 		for (AbstractQueryProcessor queryProcessor : processors) {
@@ -74,9 +74,17 @@ public class MainStreaming {
 		measure.outputMeasure();
 
 		logger.info(new Integer(q.getRecs().size()).toString());
-		boolean res = q.Search(-73.987129f, 40.744877f, -73.980278f,
-				40.735222f, "DB9AC95FB46B93081701BCC50F84B378");
-		System.out.println(res);
+
 	}
 
+	@org.openjdk.jmh.annotations.Benchmark
+	@Fork(value = 1)
+	@Warmup(iterations = 1)
+	@Measurement(iterations = 1)
+	public boolean testMethod() {
+		Boolean res = q.Search(-73.987129f, 40.744877f, -73.980278f,
+				40.735222f, "DB9AC95FB46B93081701BCC50F84B378");
+		return res;
+
+	}
 }
