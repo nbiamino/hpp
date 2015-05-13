@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
+import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Measurement;
 import org.openjdk.jmh.annotations.Scope;
@@ -77,7 +78,7 @@ public class Benchmarkk {
 
 	}
 
-	@org.openjdk.jmh.annotations.Benchmark
+	@Benchmark
 	@Fork(value = 1)
 	@Warmup(iterations = 1)
 	@Measurement(iterations = 1)
