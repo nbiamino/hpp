@@ -21,3 +21,8 @@ hs_err_pid*
 *.txt
 *.txt
 *.log
+logs/logger.log
+*.log
+logs/logger.log
+*.txt
+result/result.txt
