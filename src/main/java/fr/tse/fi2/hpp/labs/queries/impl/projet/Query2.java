@@ -57,17 +57,19 @@ public class Query2 extends AbstractQueryProcessor {
 			if (recsRentable.get(i).getX()==ArrX &&recsRentable.get(i).getY()==ArrY){
 				recsRentable.get(i).setTaxiVide(recsRentable.get(i).getTaxiVide()+1);
 				recsRentable.get(i).setProfit(recsRentable.get(i).getMediane()/recsRentable.get(i).getTaxiVide());   
+				isInRecsRentable=true;
 			}
-			else{
-				RecRentable recRentable = null;
+		}
+		if(isInRecsRentable==false){
+				RecRentable recRentable= new RecRentable();
 				recRentable.setX(ArrX);
 				recRentable.setY(ArrY);
 				recRentable.setTaxiVide(1);
 				recsRentable.add(recRentable);
-			}
-		}
+				}
 			
 		
+		isInRecsRentable=false;
 		for(int i =0; i<recsRentable.size();i++){			
 			if (recsRentable.get(i).getX()==DepX &&recsRentable.get(i).getY()==DepY){
 				for (int j=0 ; j<recsRentable.get(i).getFares().size();i++){
