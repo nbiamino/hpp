@@ -52,6 +52,7 @@ public class Query2 extends AbstractQueryProcessor {
 		// TODO Auto-generated method stub
 		//modification due à l'ajout du dernier record
 		getCell(recs30.getLast());
+		boolean isInRecsRentable = false;
 		for(int i =0; i<recsRentable.size();i++){			
 			if (recsRentable.get(i).getX()==ArrX &&recsRentable.get(i).getY()==ArrY){
 				recsRentable.get(i).setTaxiVide(recsRentable.get(i).getTaxiVide()+1);
@@ -65,33 +66,34 @@ public class Query2 extends AbstractQueryProcessor {
 				recsRentable.add(recRentable);
 			}
 		}
+			
 		
 		for(int i =0; i<recsRentable.size();i++){			
 			if (recsRentable.get(i).getX()==DepX &&recsRentable.get(i).getY()==DepY){
 				for (int j=0 ; j<recsRentable.get(i).getFares().size();i++){
 					if(recs30.getLast().getFare_amount()+recs30.getLast().getTip_amount()<recsRentable.get(i).getFares().get(j)){
 						recsRentable.get(i).getFares().add(j,(double) (recs30.getLast().getFare_amount()+recs30.getLast().getTip_amount()) );
+						isInRecsRentable=true;
 						break;
 						
 					// problème à régler si c'est l'élément le plus grand du tableau
 					}
 				}
 			}
-			else{
-				
-				
-				RecRentable recRentable = null;
+			if(isInRecsRentable==true){
+				RecRentable recRentable = new RecRentable();
 				recRentable.setX(DepX);
 				recRentable.setY(DepY);
 				recRentable.getFares().add( (double) (recs30.getLast().getFare_amount()+recs30.getLast().getTip_amount()));
 				recRentable.setMediane(recRentable.getFares().get(recRentable.getFares().size()/2));
 				recRentable.setProfit(recRentable.getMediane()/recRentable.getTaxiVide());
-				
 				recsRentable.add(recRentable);
 			}
 		}
 		
 		//modification due aux supppressions des taxi -30 min 
+		
+		
 		
 		// modification dues aux supppressions des taxi -30 min à 15min
 	}
