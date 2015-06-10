@@ -143,6 +143,7 @@ public class Query2 extends AbstractQueryProcessor {
 			RecRentable recRentable = new RecRentable();
 			recRentable.setX(arrX);
 			recRentable.setY(arrY);
+			recRentable.getiDs().add(recs30.getLast().getHack_license());
 			recRentable.setTaxiVide(1);
 			recsRentable.add(recRentable);
 			System.out.println("creation cellule arrivé : " + recRentable);

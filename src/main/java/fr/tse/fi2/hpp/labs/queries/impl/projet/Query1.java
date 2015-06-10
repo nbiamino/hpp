@@ -106,7 +106,7 @@ public class Query1 extends AbstractQueryProcessor {
 	public static ArrayList<ArrayList<Integer>> count(
 			LinkedList<ArrayList<Integer>> recsCell2) {
 		
-		HashMap<ArrayList<Integer>, Integer> recsCellCount = new HashMap<ArrayList<Integer>, Integer>();
+		TreeMap<ArrayList<Integer>, Integer> recsCellCount = new TreeMap<ArrayList<Integer>, Integer>();
 		ValueComparator bvc =  new ValueComparator(recsCellCount);
 		TreeMap<ArrayList<Integer>, Integer> sorted_map = new TreeMap<ArrayList<Integer>, Integer>(bvc);
 		
@@ -132,7 +132,7 @@ public class Query1 extends AbstractQueryProcessor {
 	static class ValueComparator implements Comparator<ArrayList<Integer>> {
 
 	    Map<ArrayList<Integer>, Integer> base;
-	    public ValueComparator(HashMap<ArrayList<Integer>, Integer> recsCellCount) {
+	    public ValueComparator(TreeMap<ArrayList<Integer>, Integer> recsCellCount) {
 	        this.base = recsCellCount;
 	    }
 
