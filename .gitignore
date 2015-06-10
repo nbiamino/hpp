@@ -26,3 +26,4 @@ logs/logger.log
 logs/logger.log
 *.txt
 result/result.txt
+*.csv

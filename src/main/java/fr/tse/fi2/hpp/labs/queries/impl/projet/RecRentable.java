@@ -8,7 +8,7 @@ int y=0;
 int taxiVide=0;
 ArrayList<Double> fares = new ArrayList<>();
 Double mediane=(double) 0;
-Double profit=(double) 0;
+Double profit=null;
 
 public int getX() {
 	return x;

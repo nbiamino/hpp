@@ -12,7 +12,8 @@ import fr.tse.fi2.hpp.labs.beans.DebsRecord;
 import fr.tse.fi2.hpp.labs.beans.measure.QueryProcessorMeasure;
 import fr.tse.fi2.hpp.labs.dispatcher.LoadFirstDispatcher;
 import fr.tse.fi2.hpp.labs.queries.AbstractQueryProcessor;
-import fr.tse.fi2.hpp.labs.queries.impl.projet.Compare;
+import fr.tse.fi2.hpp.labs.queries.impl.projet.Query2;
+
 
 /**
  * Main class of the program. Register your new queries here
@@ -28,7 +29,7 @@ public class MainNonStreaming {
 	final static Logger logger = LoggerFactory
 			.getLogger(MainNonStreaming.class);
 	// private static BloomFilterHash q;
-	private static Compare q;
+	private static Query2 q;
 	private DebsRecord r;
 
 	/**
@@ -41,12 +42,12 @@ public class MainNonStreaming {
 		QueryProcessorMeasure measure = new QueryProcessorMeasure();
 		// Init dispatcher and load everything
 		LoadFirstDispatcher dispatch = new LoadFirstDispatcher(
-				"src/main/resources/data/1000Records.csv");
+				"src/main/resources/data/test_01.csv");
 		logger.info("Finished parsing");
 		// Query processors
 		List<AbstractQueryProcessor> processors = new ArrayList<>();
 		// Add you query processor here
-		q = new Compare(measure);
+		q = new Query2(measure);
 		processors.add(q);
 		// processors.add(new SumQuery(measure));
 		// Register query processors
