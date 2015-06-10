@@ -1,5 +1,7 @@
 package fr.tse.fi2.hpp.labs.queries.impl.projet;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.LinkedList;
 
 import fr.tse.fi2.hpp.labs.beans.DebsRecord;
@@ -8,15 +10,25 @@ import fr.tse.fi2.hpp.labs.queries.AbstractQueryProcessor;
 
 public class Query2 extends AbstractQueryProcessor {
 
+	// recs15 stock tous les DebsRecord ayant eu lieu dans les 15 dernières
+	// minutes
+	private static LinkedList<DebsRecord> recs15 = new LinkedList<>();
+	// recs30 stock tous les debsRecord ayant eu lieu dans les 30 dernières
+	// minutes
 	private static LinkedList<DebsRecord> recs30 = new LinkedList<>();
 	private static LinkedList<DebsRecord> deletedRecs15 = new LinkedList<>();
 	private static LinkedList<DebsRecord> deletedRecs30 = new LinkedList<>();
 
 	// elements de recsRentable au format (longitudeCell, latitudeCell,
 	// taxiVides, Mediane, profit)
+	// va permettre de stocker toutes les cellules rencontrées dans les 30
+	// dernière minutes
 	private static LinkedList<RecRentable> recsRentable = new LinkedList<>();
+
 	private static long lastTime;
+	private static long firstTime15;
 	private static int depX, depY, arrX, arrY;
+	private String sortie;
 
 	public Query2(QueryProcessorMeasure measure) {
 		super(measure);
@@ -26,24 +38,48 @@ public class Query2 extends AbstractQueryProcessor {
 	@Override
 	protected void process(DebsRecord record) {
 		// TODO Auto-generated method stub
-
+		long start = System.nanoTime();
+		recs15.add(record);
 		recs30.add(record);
 		lastTime = record.getDropoff_datetime();
 		deletedRecs15.clear();
 		deletedRecs30.clear();
+		firstTime15 = recs15.getFirst().getDropoff_datetime();
+		while ((lastTime - recs15.getFirst().getDropoff_datetime()) / 60000 > 15) {
+			deletedRecs15.add(recs15.getFirst());
+			recs15.removeFirst();
+		}
 
 		while ((lastTime - recs30.getFirst().getDropoff_datetime()) / 60000 > 30) {
 			deletedRecs30.add(recs30.getFirst());
-			deletedRecs15.add(recs30.getFirst());
-			recs30.removeFirst();
-		}
-
-		while ((lastTime - recs30.getFirst().getDropoff_datetime()) / 60000 > 15) {
-			deletedRecs15.add(recs30.getFirst());
 			recs30.removeFirst();
 		}
 
 		majRecsRentable();
+		prepareSortie(start, recsRentable);
+		// System.out.println(recsRentable.toString());
+		this.listsum.add(sortie);
+	}
+
+	public void prepareSortie(long start, LinkedList<RecRentable> recsRentablef) {
+		Date dd = new Date(firstTime15);
+		Date df = new Date(lastTime);
+		long delay = System.nanoTime() - start;
+		String listnull = "";
+		for (int i = 0; i < recsRentablef.size(); i++) {
+
+		}
+		int taille = recsRentablef.size();
+		if (taille > 10) {
+			for (int j = 10; j < taille; j++) {
+				recsRentablef.remove(10);
+			}
+		}
+		for (int k = 0; k < 10 - taille; k++) {
+			listnull += " , NULL";
+		}
+		sortie = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(dd) + " , " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(df) + recsRentablef.toString() + listnull
+				+ " , " + delay;
 	}
 
 	private void majRecsRentable() {
@@ -58,48 +94,29 @@ public class Query2 extends AbstractQueryProcessor {
 		for (int i = 0; i < recsRentable.size(); i++) {
 			// Pour toutes les cellules déjà connues
 			// System.out.println("arrX : " + arrX + " arrY : " + arrY);
-			if (recsRentable.get(i).getX() == arrX
-					&& recsRentable.get(i).getY() == arrY) {
+			if (recsRentable.get(i).getX() == arrX && recsRentable.get(i).getY() == arrY) {
 				// Si un taxi est déjà arriver dans cette cellule
 				// System.out.println("MAJ cellule arriver");
-				if (!(recsRentable.get(i).getiDs().contains(recs30.getLast()
-						.getHack_license()))) {
-					recsRentable.get(i).setTaxiVide(
-							recsRentable.get(i).getTaxiVide() + 1);
-					recsRentable.get(i).getiDs()
-							.add(recs30.getLast().getHack_license());
+				if (!(recsRentable.get(i).getiDs().contains(recs30.getLast().getHack_license()))) {
+					recsRentable.get(i).setTaxiVide(recsRentable.get(i).getTaxiVide() + 1);
+					recsRentable.get(i).getiDs().add(recs30.getLast().getHack_license());
 				}
-				recsRentable.get(i).setProfit(
-						recsRentable.get(i).getMediane()
-								/ recsRentable.get(i).getTaxiVide());
+				recsRentable.get(i).setProfit(recsRentable.get(i).getMediane() / recsRentable.get(i).getTaxiVide());
 				// System.out.println("Taxi vide : " +
 				// recsRentable.get(i).getTaxiVide());
-				recsRentable.get(i).setProfit(
-						recsRentable.get(i).getMediane()
-								/ recsRentable.get(i).getTaxiVide()); // On
-																		// calcule
-																		// le
-																		// profit
+				recsRentable.get(i).setProfit(recsRentable.get(i).getMediane() / recsRentable.get(i).getTaxiVide());
+				// On calcule le profit
 				celluleArriv_existe = true;
 			}
-			if (recsRentable.get(i).getX() == depX
-					&& recsRentable.get(i).getY() == depY) {
+			if (recsRentable.get(i).getX() == depX && recsRentable.get(i).getY() == depY) {
 				// Si un taxi est déjà partie de cette cellule
 				for (int j = 0; j < recsRentable.get(i).getFares().size(); j++) {
 					// Pour tous les tarifs payé dans cette cellule
 					// On les trie au fur et à mesure
-					if (recs30.getLast().getFare_amount()
-							+ recs30.getLast().getTip_amount() < recsRentable
-							.get(i).getFares().get(j)) {
+					if (recs30.getLast().getFare_amount() + recs30.getLast().getTip_amount() < recsRentable.get(i).getFares().get(j)) {
 						// Si le tarifs est plus petit qu'un tarif déjà existant
 						// on l'insert juste avant lui
-						recsRentable
-								.get(i)
-								.getFares()
-								.add(j,
-										(double) (recs30.getLast()
-												.getFare_amount() + recs30
-												.getLast().getTip_amount()));
+						recsRentable.get(i).getFares().add(j, (double) (recs30.getLast().getFare_amount() + recs30.getLast().getTip_amount()));
 						celluleDep_existe = true;
 						jeSuisLePlusGrand = false;
 						break;
@@ -109,27 +126,13 @@ public class Query2 extends AbstractQueryProcessor {
 				if (jeSuisLePlusGrand == true) {
 					// Si le tarif est le plus grand trouvé jusqu'à présent on
 					// le met à la fin
-					recsRentable
-							.get(i)
-							.getFares()
-							.add((double) (recs30.getLast().getFare_amount() + recs30
-									.getLast().getTip_amount()));
+					recsRentable.get(i).getFares().add((double) (recs30.getLast().getFare_amount() + recs30.getLast().getTip_amount()));
 					celluleDep_existe = true;
 				}
-				recsRentable.get(i)
-						.setMediane(
-								recsRentable
-										.get(i)
-										.getFares()
-										.get(recsRentable.get(i).getFares()
-												.size() / 2));
-				System.out.println(recsRentable.get(i).getX() + " "
-						+ recsRentable.get(i).getY() + " Mediane : "
-						+ recsRentable.get(i).getMediane());
+				recsRentable.get(i).setMediane(recsRentable.get(i).getFares().get(recsRentable.get(i).getFares().size() / 2));
+				System.out.println(recsRentable.get(i).getX() + " " + recsRentable.get(i).getY() + " Mediane : " + recsRentable.get(i).getMediane());
 				if (!(recsRentable.get(i).getTaxiVide() == 0)) {
-					recsRentable.get(i).setProfit(
-							recsRentable.get(i).getMediane()
-									/ recsRentable.get(i).getTaxiVide());
+					recsRentable.get(i).setProfit(recsRentable.get(i).getMediane() / recsRentable.get(i).getTaxiVide());
 				}
 			}
 		}
@@ -151,13 +154,9 @@ public class Query2 extends AbstractQueryProcessor {
 			RecRentable recRentable = new RecRentable();
 			recRentable.setX(depX);
 			recRentable.setY(depY);
-			recRentable.getFares().add(
-					(double) (recs30.getLast().getFare_amount() + recs30
-							.getLast().getTip_amount()));
-			recRentable.setMediane(recRentable.getFares().get(
-					recRentable.getFares().size() / 2));
-			recRentable.setProfit(recRentable.getMediane()
-					/ recRentable.getTaxiVide());
+			recRentable.getFares().add((double) (recs30.getLast().getFare_amount() + recs30.getLast().getTip_amount()));
+			recRentable.setMediane(recRentable.getFares().get(recRentable.getFares().size() / 2));
+			recRentable.setProfit(recRentable.getMediane() / recRentable.getTaxiVide());
 			recsRentable.add(recRentable);
 			System.out.println("creation cellule départ : " + recRentable);
 		}
@@ -166,26 +165,19 @@ public class Query2 extends AbstractQueryProcessor {
 			getCell(deletedRecs30.get(i));
 			// comparaison à toute les cellules exisatantes.
 			for (int j = 0; j < recsRentable.size(); j++) {
-				if (recsRentable.get(j).getX() == arrX
-						&& recsRentable.get(j).getY() == arrY) {
+				if (recsRentable.get(j).getX() == arrX && recsRentable.get(j).getY() == arrY) {
 					// on supprime un taxi vide si besoin
-					if ((recsRentable.get(j).getiDs().contains(recs30.get(i)
-							.getHack_license()))) {
-						recsRentable.get(j).setTaxiVide(
-								recsRentable.get(j).getTaxiVide() - 1);
-						recsRentable.get(i).getiDs()
-								.remove(recs30.getLast().getHack_license());
+					if ((recsRentable.get(j).getiDs().contains(recs30.get(i).getHack_license()))) {
+						recsRentable.get(j).setTaxiVide(recsRentable.get(j).getTaxiVide() - 1);
+						recsRentable.get(i).getiDs().remove(recs30.getLast().getHack_license());
 					}
 					// suppression de la case si elle est vide
-					if (recsRentable.get(j).getMediane() == 0
-							&& recsRentable.get(j).getTaxiVide() == 0) {
+					if (recsRentable.get(j).getMediane() == 0 && recsRentable.get(j).getTaxiVide() == 0) {
 						recsRentable.remove(j);
 						j--;
 						// sinon recalcul du profit (si possible)
 					} else if (!(recsRentable.get(j).getTaxiVide() == 0)) {
-						recsRentable.get(j).setProfit(
-								recsRentable.get(j).getMediane()
-										/ recsRentable.get(j).getTaxiVide());
+						recsRentable.get(j).setProfit(recsRentable.get(j).getMediane() / recsRentable.get(j).getTaxiVide());
 					}
 					// pas de calcul de profit si nm de taxi vide=0
 					else {
@@ -204,13 +196,10 @@ public class Query2 extends AbstractQueryProcessor {
 
 			// on les compare à chaque élément du tableau
 			for (int j = 0; j < recsRentable.size(); j++) {
-				if (recsRentable.get(j).getX() == depX
-						&& recsRentable.get(j).getY() == depY) {
+				if (recsRentable.get(j).getX() == depX && recsRentable.get(j).getY() == depY) {
 					// suppression du fare correspondant au taxi
 					for (int k = 0; k < recsRentable.get(j).getFares().size(); k++) {
-						if (deletedRecs15.get(i).getFare_amount()
-								+ deletedRecs15.get(i).getTip_amount() == recsRentable
-								.get(j).getFares().get(k)) {
+						if (deletedRecs15.get(i).getFare_amount() + deletedRecs15.get(i).getTip_amount() == recsRentable.get(j).getFares().get(k)) {
 							recsRentable.get(j).getFares().remove(k);
 
 							break;
@@ -218,23 +207,18 @@ public class Query2 extends AbstractQueryProcessor {
 					}
 
 					// recalcul de la médiane
-					recsRentable.get(j)
-							.setMediane(
-									recsRentable
-											.get(j)
-											.getFares()
-											.get(recsRentable.get(j).getFares()
-													.size() / 2));
+					if (recsRentable.get(j).getFares().isEmpty()) {
+						recsRentable.get(j).setMediane((double) 0);
+					} else {
+						recsRentable.get(j).setMediane(recsRentable.get(j).getFares().get(recsRentable.get(j).getFares().size() / 2));
+					}
 					// suppression de la case si elle est vide
-					if (recsRentable.get(j).getMediane() == 0
-							&& recsRentable.get(j).getTaxiVide() == 0) {
+					if (recsRentable.get(j).getMediane() == 0 && recsRentable.get(j).getTaxiVide() == 0) {
 						recsRentable.remove(j);
 					}
 					// Sinon recalcule de profit
 					else if (!(recsRentable.get(j).getTaxiVide() == 0)) {
-						recsRentable.get(j).setProfit(
-								recsRentable.get(j).getMediane()
-										/ recsRentable.get(j).getTaxiVide());
+						recsRentable.get(j).setProfit(recsRentable.get(j).getMediane() / recsRentable.get(j).getTaxiVide());
 					}
 					// pas de calcul de profit si nm de taxi vide=0
 					else {
